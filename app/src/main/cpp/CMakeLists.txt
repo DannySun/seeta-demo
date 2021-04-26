@@ -35,6 +35,11 @@ set_target_properties(opencv3
         PROPERTIES IMPORTED_LOCATION
         ${CMAKE_SOURCE_DIR}/jniLibs/${ANDROID_ABI}/libopencv_java3.so)
 
+add_library(tennis SHARED IMPORTED)
+set_target_properties(tennis
+        PROPERTIES IMPORTED_LOCATION
+        ${CMAKE_SOURCE_DIR}/jniLibs/${ANDROID_ABI}/libtennis.so)
+
 add_library(seeta-authorize SHARED IMPORTED)
 set_target_properties(seeta-authorize
         PROPERTIES IMPORTED_LOCATION
@@ -45,10 +50,10 @@ set_target_properties(seeta-face-detector
         PROPERTIES IMPORTED_LOCATION
         ${CMAKE_SOURCE_DIR}/jniLibs/${ANDROID_ABI}/libSeetaFaceDetector600.so)
 
-add_library(tennis SHARED IMPORTED)
-set_target_properties(tennis
+add_library(seeta-face-landmarker SHARED IMPORTED)
+set_target_properties(seeta-face-landmarker
         PROPERTIES IMPORTED_LOCATION
-        ${CMAKE_SOURCE_DIR}/jniLibs/${ANDROID_ABI}/libtennis.so)
+        ${CMAKE_SOURCE_DIR}/jniLibs/${ANDROID_ABI}/libSeetaFaceLandmarker600.so)
 
 find_library( # Sets the name of the path variable.
               log-lib
