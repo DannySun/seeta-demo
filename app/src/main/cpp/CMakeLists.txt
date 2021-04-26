@@ -55,6 +55,11 @@ set_target_properties(seeta-face-landmarker
         PROPERTIES IMPORTED_LOCATION
         ${CMAKE_SOURCE_DIR}/jniLibs/${ANDROID_ABI}/libSeetaFaceLandmarker600.so)
 
+add_library(seeta-age-predictor SHARED IMPORTED)
+set_target_properties(seeta-age-predictor
+        PROPERTIES IMPORTED_LOCATION
+        ${CMAKE_SOURCE_DIR}/jniLibs/${ANDROID_ABI}/libSeetaAgePredictor600.so)
+
 find_library( # Sets the name of the path variable.
               log-lib
 
@@ -72,6 +77,8 @@ target_link_libraries( # Specifies the target library.
                         tennis
                         seeta-authorize
                         seeta-face-detector
+                        seeta-face-landmarker
+                        seeta-age-predictor
                        # Links the target library to the log library
                        # included in the NDK.
                        ${log-lib} )
