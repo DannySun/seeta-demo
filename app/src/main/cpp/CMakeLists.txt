@@ -35,6 +35,20 @@ set_target_properties(opencv3
         PROPERTIES IMPORTED_LOCATION
         ${CMAKE_SOURCE_DIR}/jniLibs/${ANDROID_ABI}/libopencv_java3.so)
 
+add_library(seeta-authorize SHARED IMPORTED)
+set_target_properties(seeta-authorize
+        PROPERTIES IMPORTED_LOCATION
+        ${CMAKE_SOURCE_DIR}/jniLibs/${ANDROID_ABI}/libSeetaAuthorize.so)
+
+add_library(seeta-face-detector SHARED IMPORTED)
+set_target_properties(seeta-face-detector
+        PROPERTIES IMPORTED_LOCATION
+        ${CMAKE_SOURCE_DIR}/jniLibs/${ANDROID_ABI}/libSeetaFaceDetector600.so)
+
+add_library(tennis SHARED IMPORTED)
+set_target_properties(tennis
+        PROPERTIES IMPORTED_LOCATION
+        ${CMAKE_SOURCE_DIR}/jniLibs/${ANDROID_ABI}/libtennis.so)
 
 find_library( # Sets the name of the path variable.
               log-lib
@@ -50,6 +64,9 @@ find_library( # Sets the name of the path variable.
 target_link_libraries( # Specifies the target library.
                        native-lib
                         opencv3
+                        tennis
+                        seeta-authorize
+                        seeta-face-detector
                        # Links the target library to the log library
                        # included in the NDK.
                        ${log-lib} )
