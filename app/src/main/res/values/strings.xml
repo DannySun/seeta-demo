@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">SeetaDemo</string>
+    <string name="permission_fail">由于权限未打开,无法进行识别。请去设置界面手动打开</string>
+    <string name="open_permission_to_use">为了能够正常使用，请开启一下权限</string>
 </resources>

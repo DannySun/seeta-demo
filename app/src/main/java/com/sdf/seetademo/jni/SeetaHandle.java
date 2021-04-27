@@ -26,4 +26,7 @@ public class SeetaHandle {
      * which is packaged with this application.
      */
     public native String stringFromJNI();
+
+    public native int initModels(String faceDetector, String landMarker, String agePredictor);
+    public native int predictAge(String imageUrl);
 }
