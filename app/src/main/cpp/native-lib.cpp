@@ -57,9 +57,100 @@ Java_com_sdf_seetademo_jni_SeetaHandle_initModels(JNIEnv *env, jobject thiz, jst
     return 0;
 }
 
+void onFaceDetected(JNIEnv *env, jobject seetaCallback, SeetaFaceInfoArray infos) {
+    if (seetaCallback == NULL) {
+        return;
+    }
+    jobject face_callback = env->NewLocalRef(seetaCallback);
+    if (face_callback != NULL) {
+        jclass cls = env->GetObjectClass(face_callback);
+        if (cls != NULL) {
+            jmethodID  mid = env->GetMethodID(cls, "onDetected", "(I[I[I[I[I[I)V");
+            if (mid != NULL) {
+                //1.新建长度len数组
+                jintArray scores = env->NewIntArray(infos.size);
+                jintArray faceX = env->NewIntArray(infos.size);
+                jintArray faceY = env->NewIntArray(infos.size);
+                jintArray faceWidth = env->NewIntArray(infos.size);
+                jintArray faceHeight = env->NewIntArray(infos.size);
+                //2.获取数组指针
+                jint *scores_arr = env->GetIntArrayElements(scores, NULL);
+                jint *faceX_arr = env->GetIntArrayElements(faceX, NULL);
+                jint *faceY_arr = env->GetIntArrayElements(faceY, NULL);
+                jint *faceWidth_arr = env->GetIntArrayElements(faceWidth, NULL);
+                jint *faceHeight_arr = env->GetIntArrayElements(faceHeight, NULL);
+                //3.赋值
+                for (int i=0; i<infos.size; i++){
+                    scores_arr[i] = infos.data[i].score;
+                    faceX_arr[i] = infos.data[i].pos.x;
+                    faceY_arr[i] = infos.data[i].pos.y;
+                    faceWidth_arr[i] = infos.data[i].pos.width;
+                    faceHeight_arr[i] = infos.data[i].pos.height;
+                }
+                //4.释放资源
+                env->ReleaseIntArrayElements(scores, scores_arr, 0);
+                env->ReleaseIntArrayElements(faceX, faceX_arr, 0);
+                env->ReleaseIntArrayElements(faceY, faceY_arr, 0);
+                env->ReleaseIntArrayElements(faceWidth, faceWidth_arr, 0);
+                env->ReleaseIntArrayElements(faceHeight, faceHeight_arr, 0);
+
+                env->CallVoidMethod(face_callback, mid, infos.size, scores, faceX, faceY, faceWidth, faceHeight);
+
+            }
+        }
+    }
+}
+
+void onFaceMarked(JNIEnv *env, jobject seetaCallback, int index, SeetaPointF seetaPoints[], int pointsSize) {
+    if (seetaCallback == NULL) {
+        return;
+    }
+    jobject face_callback = env->NewLocalRef(seetaCallback);
+    if (face_callback != NULL) {
+        jclass cls = env->GetObjectClass(face_callback);
+        if (cls != NULL) {
+            jmethodID  mid = env->GetMethodID(cls, "onLandmarked", "(I[I[I)V");
+            if (mid != NULL) {
+                //1.新建长度len数组
+                jintArray pointsX = env->NewIntArray(pointsSize);
+                jintArray pointsY = env->NewIntArray(pointsSize);
+                //2.获取数组指针
+                jint *pointsX_arr = env->GetIntArrayElements(pointsX, NULL);
+                jint *pointsY_arr = env->GetIntArrayElements(pointsY, NULL);
+                //3.赋值
+                for (int i=0; i<pointsSize; i++){
+                    pointsX_arr[i] = seetaPoints[i].x;
+                    pointsY_arr[i] = seetaPoints[i].y;
+                    __android_log_print(ANDROID_LOG_DEBUG,TAG,"onFaceMarked, seetaPoints, x:%d ,y:%d" , seetaPoints[i].x, seetaPoints[i].y);
+                }
+                env->CallVoidMethod(face_callback, mid, index, pointsX_arr, pointsY_arr);
+                //4.释放资源
+                env->ReleaseIntArrayElements(pointsX, pointsX_arr, 0);
+                env->ReleaseIntArrayElements(pointsY, pointsY_arr, 0);
+            }
+        }
+    }
+}
+
+void onAgePredict(JNIEnv *env, jobject seetaCallback, int index, int age) {
+    if (seetaCallback == NULL) {
+        return;
+    }
+    jobject age_callback = env->NewLocalRef(seetaCallback);
+    if (age_callback != NULL) {
+        jclass cls = env->GetObjectClass(age_callback);
+        if (cls != NULL) {
+            jmethodID  mid = env->GetMethodID(cls, "onAgePredict", "(II)V");
+            if (mid != NULL) {
+                env->CallVoidMethod(age_callback, mid, index, age);
+            }
+        }
+    }
+}
+
 extern "C"
 JNIEXPORT jint JNICALL
-Java_com_sdf_seetademo_jni_SeetaHandle_predictAge(JNIEnv *env, jobject thiz, jstring image_url) {
+Java_com_sdf_seetademo_jni_SeetaHandle_predictAge(JNIEnv *env, jobject thiz, jstring image_url, jobject seetaAgeCallback) {
     const char *image_path = env->GetStringUTFChars(image_url, 0);
 
     cv::Mat cvimage = cv::imread(image_path, cv::IMREAD_COLOR);
@@ -73,16 +164,17 @@ Java_com_sdf_seetademo_jni_SeetaHandle_predictAge(JNIEnv *env, jobject thiz, jst
     simage.data = cvimage.data;
 
     auto infos = faceDetector->detect(simage);
-    __android_log_print(ANDROID_LOG_DEBUG,TAG,"faceDetector->detect, infos.size:%d" , infos.size);
-    for (int i=0; i<infos.size; i++)
-    {
+    onFaceDetected(env, seetaAgeCallback, infos);
+
+    for (int i=0; i<infos.size; i++){
         SeetaPointF points[5];
         faceLandmarker->mark(simage, infos.data[i].pos, points);
-        __android_log_print(ANDROID_LOG_DEBUG,TAG,"faceLandmarker->mark, points[0].x:%d" , points[0].x);
+//        onFaceMarked(env, seetaAgeCallback, i, points, 5);
+
         int age = 0;
         agePredictor->PredictAgeWithCrop(simage, points, age);
-        __android_log_print(ANDROID_LOG_DEBUG,TAG,"agePredictor->PredictAgeWithCrop, age:%d" , age);
-        return age;
+//        __android_log_print(ANDROID_LOG_DEBUG,TAG,"agePredictor->PredictAgeWithCrop, age:%d" , age);
+        onAgePredict(env, seetaAgeCallback, i, age);
     }
     return 0;
 }

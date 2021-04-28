@@ -28,5 +28,5 @@ public class SeetaHandle {
     public native String stringFromJNI();
 
     public native int initModels(String faceDetector, String landMarker, String agePredictor);
-    public native int predictAge(String imageUrl);
+    public native int predictAge(String imageUrl, SeetaAgeCallback seetaAgeCallback);
 }
