@@ -57,7 +57,7 @@ Java_com_sdf_seetademo_jni_SeetaHandle_initModels(JNIEnv *env, jobject thiz, jst
     return 0;
 }
 
-void onFaceDetected(JNIEnv *env, jobject seetaCallback, SeetaFaceInfoArray infos) {
+void onFaceDetected(JNIEnv *env, jobject seetaCallback, SeetaFaceInfoArray infos, int bitmap_width, int bitmap_height) {
     if (seetaCallback == NULL) {
         return;
     }
@@ -65,7 +65,7 @@ void onFaceDetected(JNIEnv *env, jobject seetaCallback, SeetaFaceInfoArray infos
     if (face_callback != NULL) {
         jclass cls = env->GetObjectClass(face_callback);
         if (cls != NULL) {
-            jmethodID  mid = env->GetMethodID(cls, "onDetected", "(I[I[I[I[I[I)V");
+            jmethodID  mid = env->GetMethodID(cls, "onDetected", "(III[I[I[I[I[I)V");
             if (mid != NULL) {
                 //1.新建长度len数组
                 jintArray scores = env->NewIntArray(infos.size);
@@ -93,8 +93,8 @@ void onFaceDetected(JNIEnv *env, jobject seetaCallback, SeetaFaceInfoArray infos
                 env->ReleaseIntArrayElements(faceY, faceY_arr, 0);
                 env->ReleaseIntArrayElements(faceWidth, faceWidth_arr, 0);
                 env->ReleaseIntArrayElements(faceHeight, faceHeight_arr, 0);
-
-                env->CallVoidMethod(face_callback, mid, infos.size, scores, faceX, faceY, faceWidth, faceHeight);
+//                __android_log_print(ANDROID_LOG_DEBUG,TAG,"onFaceDetected, bitmap_width:%d ,bitmap_height:%d" , bitmap_width, bitmap_height);
+                env->CallVoidMethod(face_callback, mid, bitmap_width, bitmap_height, infos.size, scores, faceX, faceY, faceWidth, faceHeight);
 
             }
         }
@@ -162,9 +162,9 @@ Java_com_sdf_seetademo_jni_SeetaHandle_predictAge(JNIEnv *env, jobject thiz, jst
     simage.height = cvimage.rows;
     simage.channels = cvimage.channels();
     simage.data = cvimage.data;
-
+//    __android_log_print(ANDROID_LOG_DEBUG,TAG,"cv::imread, width:%d, height:%d" , cvimage.cols, cvimage.rows);
     auto infos = faceDetector->detect(simage);
-    onFaceDetected(env, seetaAgeCallback, infos);
+    onFaceDetected(env, seetaAgeCallback, infos, cvimage.cols, cvimage.rows);
 
     for (int i=0; i<infos.size; i++){
         SeetaPointF points[5];
